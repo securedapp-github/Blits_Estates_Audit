@@ -1,8 +1,9 @@
 const { expect, assert } = require("chai");
 const {ethers} = require("hardhat");
 
-describe("FactoryCloneContract + Governor Contract Testing + Proposal testing", function () {
-    it("Test to check deployment of contracts, creation of DAO, Deposit flow ", async function () {
+describe("Blits Estates Unit Test Cases", function () {
+
+    it("Test to check deployment of contracts", async function () {
 
         const [owner, addr1, addr2, addr3, addr4, treasury] = await ethers.getSigners();
 
@@ -14,15 +15,20 @@ describe("FactoryCloneContract + Governor Contract Testing + Proposal testing", 
         await usdcContract.deployed();
                 console.log("USDC Address:" + usdcContract.address);
 
-        let usdcTx = await usdcContract.mint(addr2.address, ethers.utils.parseUnits("12","ether"));
+        await usdcContract.changeFeeStatus(true, 500, "0x0000000000000000000000000000000000000000");
+
+        let usdcTx = await usdcContract.mint(addr2.address, ethers.utils.parseUnits("1.2","ether"));
         await usdcTx.wait();
 
-        let usdcTx1 = await usdcContract.mint(addr3.address, ethers.utils.parseUnits("24","ether"));
-        await usdcTx1.wait();
-
-        let usdcTx2 = await usdcContract.mint(addr4.address, ethers.utils.parseUnits("6","ether"));
+        let usdcTx2 = await usdcContract.mint(addr4.address, ethers.utils.parseUnits("1000","ether"));
         await usdcTx2.wait();
-        
+
+        await usdcContract.connect(addr4).transfer(addr3.address, ethers.utils.parseUnits("1000","ether"));
+
+        console.log("addr 4 balance : ",await usdcContract.balanceOf(addr4.address));
+        console.log("addr 3 balance : ",await usdcContract.balanceOf(addr3.address));
+        console.log("treasury balance : ",await usdcContract.balanceOf(treasury.address));
+
         // Factory Contract launch
         const Clone = await ethers.getContractFactory("FactoryCloneContract");
         const factoryContract = await Clone.deploy(usdcContract.address);
@@ -31,9 +37,6 @@ describe("FactoryCloneContract + Governor Contract Testing + Proposal testing", 
         console.log("Active Address:" + addr1.address);
 
         console.log("Factory address:" + factoryContract.address);
-
-        // await factoryContract.approveListing(addr1.address);
-        // console.log("Approved_publish");
 
         const setTx = await factoryContract.connect(owner).createDAO(
                 "token1",
@@ -47,19 +50,26 @@ describe("FactoryCloneContract + Governor Contract Testing + Proposal testing", 
        console.log("Share_address", share_address);
 
        let shareContract = await ethers.getContractAt("Shares", share_address); 
-       // Deposit Flow test 
+
        var usdc2Tx = await usdcContract.connect(addr2).approve(share_address, ethers.utils.parseUnits("1.2","ether"));     
        console.log("Approve blits");
        
        await shareContract.connect(addr2).buyShares(12);
 
-    //    console.log("Buy Shares");
-    //    expect(await usdcContract.balanceOf(addr2.address)).to.equal(0);
-    //    expect(await shareContract.balanceOf(addr2.address)).to.equal(ethers.utils.parseUnits("120","ether"));
-    //    expect(await usdcContract.balanceOf(treasury.address)).to.equal(ethers.utils.parseUnits("12","ether"));
+       await shareContract.burnToken(addr2.address, 2);
+       console.log("balance share of addr2 : ",        await shareContract.balanceOf(addr2.address));
+       await shareContract.changePrice(ethers.utils.parseUnits("0.01","ether"));
 
+       var usdc2Tx = await usdcContract.connect(addr3).approve(share_address, ethers.utils.parseUnits("988","ether"));     
+       console.log("Approve blits");
+       
+       await shareContract.connect(addr3).buyShares(9880);
+
+       console.log("balance share of addr3 : ",        await shareContract.balanceOf(addr3.address));
 
        return;
+
+
 
        var usdc2Tx = await usdcContract.connect(addr3).approve(governor_address, ethers.utils.parseUnits("24","ether"));
        await usdc2Tx.wait(); 
@@ -112,3 +122,9 @@ describe("FactoryCloneContract + Governor Contract Testing + Proposal testing", 
      
     });
 });
+ 
+
+
+
+
+   
