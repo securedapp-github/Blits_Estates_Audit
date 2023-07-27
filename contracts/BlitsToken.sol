@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -39,12 +39,13 @@ contract BlitsToken is ERC20, ERC20Burnable, AccessControl {
     /// @dev Function to change fee on token transfers
     /// @param status bool highlighting the transfer fee status
     /// @param _feePercent transfer fee percentage
-    function changeFeeStatus(bool status, uint256 _feePercent)
+    function changeFeeStatus(bool status, uint256 _feePercent, address _feewallet)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         feeActive = status;
         feePercent = _feePercent;
+        if(_feewallet != address(0)) feeWallet = _feewallet;
     }
 
     /// @dev Overriding transfer From function to add transaction fee
