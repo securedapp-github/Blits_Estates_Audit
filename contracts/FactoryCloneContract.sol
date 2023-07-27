@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity 0.8.7;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Shares.sol";
@@ -40,15 +39,16 @@ contract FactoryCloneContract {
         }
     }
 
-    function changeBlitsToken(address _token) external isOrganiser {
-            blits = _token;
+    function changeBlitsTokenOrShare(address _token, address _share) external isOrganiser {
+            if(_token != address(0)) blits = _token;
+            if(_share != address(0)) SharesAddress = _share;
     }
 
     function createDAO(
         string memory tokenName,
         string memory tokenSymbol,
         uint256 _shares,
-        uint256 _price
+        uint256 _price    // In Wei
     ) external isOrganiser{
         address tokenAddress;
         tokenAddress = Clones.clone(SharesAddress);
