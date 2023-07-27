@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^ 0.8.7;
+pragma solidity 0.8.7;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -29,7 +29,7 @@ contract Shares is Initializable, ERC20Upgradeable {
         /// @param symbol reflect the symbol of Governance Token
         function initialize(string calldata name, string calldata symbol, uint256 _maxSupply, address _Factory, address _owner, address _blits, uint256 _price) initializer public {
                 __ERC20_init(name, symbol);
-                maxSupply = _maxSupply * 10 ** 18;
+                maxSupply = _maxSupply;
                 Factory = _Factory;
                 Owner = _owner;
                 pricePerShare = _price;
@@ -38,7 +38,7 @@ contract Shares is Initializable, ERC20Upgradeable {
 
         /// @dev Function to change max supply
         function changeMaxSupply(uint256 _maxSupply) public isOwner{
-            maxSupply = _maxSupply * 10 ** 18;
+            maxSupply = _maxSupply;
         }
 
         function changeOwner(address _owner) public isOwner{
@@ -52,8 +52,6 @@ contract Shares is Initializable, ERC20Upgradeable {
         function changePrice(uint256 _price) public isOwner{
                 pricePerShare = _price;
         }
-
-        
 
         // The following functions are overrides required by Solidity.
 
@@ -81,6 +79,7 @@ contract Shares is Initializable, ERC20Upgradeable {
         /// @dev Function to mint Governance Token and assign delegate
         /// @param amount Value of tokens to be minted based on deposit by DAO member
         function buyShares(uint256 amount) external {
+        require(totalSupply() + amount <= maxSupply,"Max Supply reached");
         IERC20(Blitz).transferFrom(msg.sender, Owner, amount * pricePerShare);  
         _mint(msg.sender, amount);
         }
